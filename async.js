@@ -94,7 +94,7 @@ function map(arr, iterator, callback) {
         if (!loopClosed) {
             if (typeof err !== 'undefined' && err) {
                 loopClosed = true;
-                return callback(err, results)
+                return callback(err, results);
             }
 
             console.log('called for ' + this.index);
@@ -111,7 +111,7 @@ function map(arr, iterator, callback) {
 
     for (var i = 0; i < arr.length; i++) {
         iterator(arr[i], whenDone.bind({index: i}));
-    };
+    }
 }
 
 function mapSeries(arr, iterator, callback) {
@@ -121,7 +121,7 @@ function mapSeries(arr, iterator, callback) {
 
     function whenDone(err, transformed) {
         if (typeof err !== 'undefined' && err) {
-            return callback(err, results)
+            return callback(err, results);
         }
         console.log('called for ' + this.index);
 
@@ -142,9 +142,9 @@ function mapLimit(arr, limit, iterator, callback) {
     var loopClosed = false;
     var currentlyRunning = Math.min(arr.length, limit);
 
-    for (var i = 0; i < startingBatch.length; i++) {
-        iterator(startingBatch[i], whenDone.bind({index: i}));
-    };
+    startingBatch.forEach(function(item) {
+        iterator(item, whenDone.bind({index: startingBatch.indexOf(item)}));
+    });
 
     function whenDone (err, transformed) {
         if (loopClosed) {
