@@ -53,7 +53,7 @@ function eachLimit(arr, limit, iterator, callback) {
     var loopClosed       = false;
     var currentlyRunning = Math.min(arr.length, limit);
 
-    arr.forEach(function (x) {
+    startingBatch.forEach(function (x) {
         iterator(x, whenDone);
     });
 
@@ -67,7 +67,7 @@ function eachLimit(arr, limit, iterator, callback) {
             return callback(err);
         }
 
-        currentProcesses--;
+        currentlyRunning--;
         countdown--;
 
         if (currentlyRunning < limit) {
@@ -131,6 +131,50 @@ function mapSeries(arr, iterator, callback) {
         }
 
         callback(null, results);
+    }
+}
+
+function mapLimit(arr, limit, iterator, callback) {
+    var results = [];
+    var startingBatch = arr.slice(0, limit);
+    var remainingBatch = arr.slice(limit);
+    var countdown = arr.length;
+    var loopClosed = false;
+    var currentlyRunning = Math.min(arr.length, limit);
+
+    for (var i = 0; i < startingBatch.length; i++) {
+        iterator(startingBatch[i], whenDone.bind({index: i}));
+    };
+
+    function whenDone (err, transformed) {
+        if (loopClosed) {
+            return;
+        }
+
+        if (typeof err !== 'undefined' && err) {
+            loopClosed = true;
+            return callback(err);
+        }
+
+        results[this.index] = transformed;
+
+        currentlyRunning--;
+        countdown--;
+
+        if (currentlyRunning < limit) {
+            var nextItem = remainingBatch.shift();
+
+            if (nextItem) {
+                currentlyRunning++;
+
+                return iterator(nextItem, whenDone.bind({index: arr.indexOf(nextItem)}));
+            }
+        }
+
+        if (!countdown) {
+            callback(null, results);
+        }
+
     }
 }
 
